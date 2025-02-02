@@ -350,6 +350,7 @@ class MessageManager:
 		print(content)
 
 		json_str = content.strip()
-		filtered_content = json.loads(json_str)
+		if json_str.startswith('```json') and json_str.endswith('```'):
+			json_str = json_str[7:-3]
 			
-		return json.loads(filtered_content)
+		return json.loads(json_str)
