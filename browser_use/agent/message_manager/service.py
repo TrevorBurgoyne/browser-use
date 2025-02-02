@@ -348,19 +348,8 @@ class MessageManager:
 		"""Extract JSON from model output, handling both plain JSON and code-block-wrapped JSON."""
 		print(f"content type: {type(content)}")
 		print(content)
-		try:
-			# Extract the part between triple backticks using regular expression
-			import re
-			match = re.search(r'''```(\n*{.*?}\n*)```''', content)
-			if not match:
-				raise ValueError("JSON is not wrapped in triple backticks")
-			filtered_content = match.group(1).strip()
+
+		json_str = content.strip()
+		filtered_content = json.loads(json_str)
 			
-			# If there's a trailing newline after the JSON block, remove it
-			if '\n' in filtered_content and filtered_content.endswith('\n'):
-				filtered_content = filtered_content[:-1]
-				
-			return json.loads(filtered_content)
-		except json.JSONDecodeError as e:
-			logger.warning(f'Failed to parse model output: {type(content)}')
-			raise ValueError('Could not parse response.')
+		return json.loads(filtered_content)
