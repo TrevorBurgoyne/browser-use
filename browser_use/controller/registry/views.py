@@ -17,7 +17,7 @@ class RegisteredAction(BaseModel):
 	def prompt_description(self) -> str:
 		"""Get a description of the action for the prompt"""
 		skip_keys = ['title']
-		s = f'Action name: {self.name}\n'
+		s = f'\nAction name: "{self.name}"\n'
 		s += f'{self.description}: \n'
 		s += 'Perform this action by using the exact action name and the listed availible parameters: \n'
 		s += '{"' + str(self.name) + '": '

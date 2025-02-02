@@ -346,7 +346,6 @@ class MessageManager:
 
 	def extract_json_from_model_output(self, content: str) -> dict:
 		"""Extract JSON from model output, handling both plain JSON and code-block-wrapped JSON."""
-		print(f"content type: {type(content)}")
 		print(content)
 
 		try:
