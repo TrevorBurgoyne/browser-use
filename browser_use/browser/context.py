@@ -24,6 +24,7 @@ from playwright.async_api import (
 )
 
 from browser_use.browser.views import BrowserError, BrowserState, TabInfo, URLNotAllowedError
+from browser_use.controller.views import ClickButton
 from browser_use.dom.service import DomService
 from browser_use.dom.views import DOMElementNode, SelectorMap
 from browser_use.utils import time_execution_sync
@@ -929,7 +930,7 @@ class BrowserContext:
 		except Exception as e:
 			raise Exception(f'Failed to input text into element: {repr(element_node)}. Error: {str(e)}')
 
-	async def _click_element_node(self, element_node: DOMElementNode) -> Optional[str]:
+	async def _click_element_node(self, element_node: DOMElementNode, button: ClickButton) -> Optional[str]:
 		"""
 		Optimized method to click an element using xpath.
 		"""
@@ -971,7 +972,7 @@ class BrowserContext:
 					await self._check_and_handle_navigation(page)
 
 			try:
-				return await perform_click(lambda: element_handle.click(timeout=1500))
+				return await perform_click(lambda: element_handle.click(timeout=1500, button=button))
 			except URLNotAllowedError as e:
 				raise e
 			except Exception:

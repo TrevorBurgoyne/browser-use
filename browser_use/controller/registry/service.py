@@ -45,6 +45,7 @@ class Registry:
 		self,
 		description: str,
 		param_model: Optional[Type[BaseModel]] = None,
+		will_change_page: bool = False,
 	):
 		"""Decorator for registering actions"""
 
@@ -75,6 +76,7 @@ class Registry:
 				description=description,
 				function=wrapped_func,
 				param_model=actual_param_model,
+				will_change_page=will_change_page,
 			)
 			self.registry.actions[func.__name__] = action
 			return func

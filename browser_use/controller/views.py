@@ -1,7 +1,9 @@
-from typing import Optional
+from typing import Optional, Literal
 
 from pydantic import BaseModel, model_validator
 
+# Define valid click buttons as a type
+ClickButton = Literal['left', 'right', 'middle']
 
 # Action Input Models
 class SearchGoogleAction(BaseModel):
@@ -15,6 +17,7 @@ class GoToUrlAction(BaseModel):
 class ClickElementAction(BaseModel):
 	index: int
 	xpath: Optional[str] = None
+	button: ClickButton = 'left'
 
 
 class InputTextAction(BaseModel):
@@ -41,6 +44,9 @@ class ScrollAction(BaseModel):
 
 class SendKeysAction(BaseModel):
 	keys: str
+
+class ScrollToTextAction(BaseModel):
+	text: str
 
 
 class NoParamsAction(BaseModel):

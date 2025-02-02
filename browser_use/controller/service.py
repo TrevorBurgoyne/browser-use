@@ -20,6 +20,7 @@ from browser_use.controller.views import (
 	SearchGoogleAction,
 	SendKeysAction,
 	SwitchTabAction,
+	ScrollToTextAction,
 )
 from browser_use.utils import time_execution_async, time_execution_sync
 
@@ -42,20 +43,20 @@ class Controller:
 		"""Register all default browser actions"""
 
 		if self.output_model is not None:
-
-			@self.registry.action('Complete task', param_model=self.output_model)
+			@self.registry.action(
+				'Call this action once the task has been completed successfully', param_model=self.output_model)
 			async def done(params: BaseModel):
 				return ActionResult(is_done=True, extracted_content=params.model_dump_json())
 		else:
-
-			@self.registry.action('Complete task', param_model=DoneAction)
+			@self.registry.action('Call this action once the task has been completed successfully', param_model=DoneAction)
 			async def done(params: DoneAction):
 				return ActionResult(is_done=True, extracted_content=params.text)
 
 		# Basic Navigation Actions
 		@self.registry.action(
-			'Search Google in the current tab',
+			'Do a Google search in the current tab',
 			param_model=SearchGoogleAction,
+			will_change_page=True,
 		)
 		async def search_google(params: SearchGoogleAction, browser: BrowserContext):
 			page = await browser.get_current_page()
@@ -65,7 +66,11 @@ class Controller:
 			logger.info(msg)
 			return ActionResult(extracted_content=msg, include_in_memory=True)
 
-		@self.registry.action('Navigate to URL in the current tab', param_model=GoToUrlAction)
+		@self.registry.action(
+			'Navigate to a URL in the current tab. Will cause the page to change.', 
+			param_model=GoToUrlAction,
+			will_change_page=True,
+		)
 		async def go_to_url(params: GoToUrlAction, browser: BrowserContext):
 			page = await browser.get_current_page()
 			await page.goto(params.url)
@@ -74,7 +79,11 @@ class Controller:
 			logger.info(msg)
 			return ActionResult(extracted_content=msg, include_in_memory=True)
 
-		@self.registry.action('Go back', param_model=NoParamsAction)
+		@self.registry.action(
+			'Go back to the most recently visited webpage', 
+			param_model=NoParamsAction,
+			will_change_page=True,
+		)
 		async def go_back(_: NoParamsAction, browser: BrowserContext):
 			await browser.go_back()
 			msg = '🔙  Navigated back'
@@ -82,7 +91,11 @@ class Controller:
 			return ActionResult(extracted_content=msg, include_in_memory=True)
 
 		# Element Interaction Actions
-		@self.registry.action('Click element', param_model=ClickElementAction)
+		@self.registry.action(
+			'Click on an element. "left" is the default button, but you can specify "right" or "middle" instead.', 
+			param_model=ClickElementAction,
+			will_change_page=True,
+		)
 		async def click_element(params: ClickElementAction, browser: BrowserContext):
 			session = await browser.get_session()
 			state = session.cached_state
@@ -102,7 +115,7 @@ class Controller:
 			msg = None
 
 			try:
-				download_path = await browser._click_element_node(element_node)
+				download_path = await browser._click_element_node(element_node, button=params.button)
 				if download_path:
 					msg = f'💾  Downloaded file to {download_path}'
 				else:
@@ -121,7 +134,7 @@ class Controller:
 				return ActionResult(error=str(e))
 
 		@self.registry.action(
-			'Input text into a input interactive element',
+			'Input text into a input interactive element.',
 			param_model=InputTextAction,
 		)
 		async def input_text(params: InputTextAction, browser: BrowserContext):
@@ -139,7 +152,11 @@ class Controller:
 			return ActionResult(extracted_content=msg, include_in_memory=True)
 
 		# Tab Management Actions
-		@self.registry.action('Switch tab', param_model=SwitchTabAction)
+		@self.registry.action(
+			'Switch to a different tab.', 
+			param_model=SwitchTabAction,
+			will_change_page=True,
+		)
 		async def switch_tab(params: SwitchTabAction, browser: BrowserContext):
 			await browser.switch_to_tab(params.page_id)
 			# Wait for tab to be ready
@@ -149,7 +166,11 @@ class Controller:
 			logger.info(msg)
 			return ActionResult(extracted_content=msg, include_in_memory=True)
 
-		@self.registry.action('Open url in new tab', param_model=OpenTabAction)
+		@self.registry.action(
+			'Open url in new tab', 
+			param_model=OpenTabAction,
+			will_change_page=True,
+		)
 		async def open_tab(params: OpenTabAction, browser: BrowserContext):
 			await browser.create_new_tab(params.url)
 			msg = f'🔗  Opened new tab with {params.url}'
@@ -158,7 +179,7 @@ class Controller:
 
 		# Content Actions
 		@self.registry.action(
-			'Extract page content to retrieve specific information from the page, e.g. all company names, a specifc description, all information about, links with companies in structured format or simply links',
+			'Extract page content and retrieve specific information from the page.',
 		)
 		async def extract_content(goal: str, browser: BrowserContext, page_extraction_llm: BaseChatModel):
 			page = await browser.get_current_page()
@@ -198,7 +219,6 @@ class Controller:
 				include_in_memory=True,
 			)
 
-		# scroll up
 		@self.registry.action(
 			'Scroll up the page by pixel amount - if no amount is specified, scroll up one page',
 			param_model=ScrollAction,
@@ -218,9 +238,8 @@ class Controller:
 				include_in_memory=True,
 			)
 
-		# send keys
 		@self.registry.action(
-			'Send strings of special keys like Backspace, Insert, PageDown, Delete, Enter, Shortcuts such as `Control+o`, `Control+Shift+T` are supported as well. This gets used in keyboard.press. Be aware of different operating systems and their shortcuts',
+			'Trigger the keypress event of special keys like Backspace, Insert, PageDown, Delete, Enter, Shortcuts such as `Control+o`, `Control+Shift+T` are supported as well. This gets used in keyboard.press. Be aware of different operating systems and their shortcuts',
 			param_model=SendKeysAction,
 		)
 		async def send_keys(params: SendKeysAction, browser: BrowserContext):
@@ -232,7 +251,8 @@ class Controller:
 			return ActionResult(extracted_content=msg, include_in_memory=True)
 
 		@self.registry.action(
-			description='If you dont find something which you want to interact with, scroll to it',
+			description="Search for specific text on the page and scroll to it.",
+			param_model=ScrollToTextAction,
 		)
 		async def scroll_to_text(text: str, browser: BrowserContext):  # type: ignore
 			page = await browser.get_current_page()
@@ -337,7 +357,7 @@ class Controller:
 				return ActionResult(extracted_content=msg, include_in_memory=True)
 
 		@self.registry.action(
-			description='Select dropdown option for interactive element index by the text of the option you want to select',
+			description='Select dropdown option for interactive element index by the text of the option you want to select.',
 		)
 		async def select_dropdown_option(
 			index: int,

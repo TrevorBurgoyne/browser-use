@@ -10,21 +10,26 @@ class RegisteredAction(BaseModel):
 	description: str
 	function: Callable
 	param_model: Type[BaseModel]
+	will_change_page: bool = False
 
 	model_config = ConfigDict(arbitrary_types_allowed=True)
 
 	def prompt_description(self) -> str:
 		"""Get a description of the action for the prompt"""
 		skip_keys = ['title']
-		s = f'{self.description}: \n'
-		s += '{' + str(self.name) + ': '
+		s = f'Action name: {self.name}\n'
+		s += f'{self.description}: \n'
+		s += 'Perform this action by using the exact action name and the listed availible parameters: \n'
+		s += '{"' + str(self.name) + '": '
 		s += str(
 			{
 				k: {sub_k: sub_v for sub_k, sub_v in v.items() if sub_k not in skip_keys}
-				for k, v in self.param_model.schema()['properties'].items()
+				for k, v in self.param_model.model_json_schema()['properties'].items()
 			}
 		)
-		s += '}'
+		s += '}' 
+		if self.will_change_page:
+			s += '\nThis action will change the page. If further actions are needed, they should be defined in "memory" and "next_goal".'
 		return s
 
 
