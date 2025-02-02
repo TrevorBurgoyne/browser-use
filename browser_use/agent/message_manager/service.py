@@ -360,5 +360,5 @@ class MessageManager:
 				
 			return json.loads(filtered_content)
 		except json.JSONDecodeError as e:
-			logger.warning(f'Failed to parse model output: {type(content)} {content} {str(e)}')
+			logger.warning(f'Failed to parse model output: {type(content)}')
 			raise ValueError('Could not parse response.')
