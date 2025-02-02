@@ -359,11 +359,11 @@ class MessageManager:
 					content = content.replace('json', '')
 
 			# Remove all instances of ('\n')
-			if '\n' in content:
-				content = content.replace('\n', '')
+			# if '\n' in content:
+			# 	content = content.replace('\n', '')
 					
 			# Parse the cleaned content
 			return json.loads(content)
 		except json.JSONDecodeError as e:
-			logger.warning(f'JSON decode error: {e}')
+			logger.warning(f'JSON decode error: {content} {e}')
 			raise ValueError('Could not parse response.')
