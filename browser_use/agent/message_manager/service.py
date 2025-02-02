@@ -352,13 +352,13 @@ class MessageManager:
 			match = re.search(r'''```(\n*{.*?}\n*)```''', content)
 			if not match:
 				raise ValueError("JSON is not wrapped in triple backticks")
-			content = match.group(1).strip()
+			filtered_content = match.group(1).strip()
 			
 			# If there's a trailing newline after the JSON block, remove it
-			if '\n' in content and content.endswith('\n'):
-				content = content[:-1]
+			if '\n' in filtered_content and filtered_content.endswith('\n'):
+				filtered_content = filtered_content[:-1]
 				
-			return json.loads(content)
+			return json.loads(filtered_content)
 		except json.JSONDecodeError as e:
 			logger.warning(f'Failed to parse model output: {content} {str(e)}')
 			raise ValueError('Could not parse response.')
