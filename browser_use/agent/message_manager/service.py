@@ -349,8 +349,21 @@ class MessageManager:
 		print(f"content type: {type(content)}")
 		print(content)
 
-		json_str = content.strip()
-		if json_str.startswith('```json') and json_str.endswith('```'):
-			json_str = json_str[7:-3]
-			
-		return json.loads(json_str)
+		try:
+			# If content is wrapped in code blocks, extract just the JSON part
+			if '```' in content:
+				# Find the JSON content between code blocks
+				content = content.split('```')[1]
+				# Remove language tag 'json'
+				if 'json' in content:
+					content = content.replace('json', '')
+
+			# Remove all instances of ('\n')
+			if '\n' in content:
+				content = content.replace('\n', '')
+					
+			# Parse the cleaned content
+			return json.loads(content)
+		except json.JSONDecodeError as e:
+			logger.warning(f'JSON decode error: {e}')
+			raise ValueError('Could not parse response.')
