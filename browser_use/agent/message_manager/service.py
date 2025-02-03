@@ -357,9 +357,9 @@ class MessageManager:
 				if 'json' in content:
 					content = content.replace('json', '')
 
-			# Remove all instances of ('\n')
-			# if '\n' in content:
-			# 	content = content.replace('\n', '')
+			# If { is not the first character, remove everything before it
+			if content[0] != '{':
+				content = content[content.find('{'):]
 					
 			# Parse the cleaned content
 			return json.loads(content)

@@ -389,7 +389,6 @@ class Agent:
 		if self.model_name == 'deepseek-reasoner' or self.model_name.startswith('deepseek-r1'):
 			converted_input_messages = self.message_manager.convert_messages_for_non_function_calling_models(input_messages)
 			merged_input_messages = self.message_manager.merge_successive_human_messages(converted_input_messages)
-			print(f"\nINPUT:\n{merged_input_messages}\n")
 			output = self.llm.invoke(merged_input_messages)
 			output.content = self._remove_think_tags(output.content)
 			# TODO: currently invoke does not return reasoning_content, we should override invoke
