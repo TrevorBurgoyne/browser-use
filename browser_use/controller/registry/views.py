@@ -19,8 +19,7 @@ class RegisteredAction(BaseModel):
 		skip_keys = ['title']
 		s = f'Action name: "{self.name}"'
 		s += f'Description: {self.description}'
-		s += 'Perform this action by specifying the action name and the available parameters: '
-		s += '{"' + str(self.name) + '": '
+		s += 'Parameters: '
 		s += str(
 			{
 				k: {sub_k: sub_v for sub_k, sub_v in v.items() if sub_k not in skip_keys}
@@ -29,7 +28,7 @@ class RegisteredAction(BaseModel):
 		)
 		s += '}' 
 		if self.will_change_page:
-			s += '\nThis action will change the page. If further actions are needed, they should be defined in "memory" and "next_goal".'
+			s += '\nThis action will change the page, and so should be the last action specified in "actions". If further actions are needed, they should be defined in "memory" and "next_goal".'
 		return s
 
 
